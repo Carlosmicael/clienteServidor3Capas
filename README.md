@@ -110,10 +110,20 @@ El frontend estará disponible en `http://localhost:3000`
 - `PUT /api/contratos/<id>` - Actualizar contrato
 - `DELETE /api/contratos/<id>` - Eliminar contrato
 
+## CI/CD
+
+El proyecto incluye pipelines de GitHub Actions para automatización:
+
+- **CI/CD Pipeline** (`ci-cd.yml`): Valida código, construye imágenes Docker y ejecuta tests
+- **Deploy Pipeline** (`deploy.yml`): Publica imágenes Docker al registro de GitHub Container Registry
+
+Ver [`.github/workflows/README.md`](.github/workflows/README.md) para más detalles.
+
 ## Características
 
 - Separación clara de responsabilidades entre tiers
 - API RESTful para comunicación cliente-servidor
 - Patrón MVC implementado en cada capa
 - Cada tier puede desplegarse independientemente
+- Pipeline de CI/CD con GitHub Actions
 
