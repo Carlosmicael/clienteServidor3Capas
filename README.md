@@ -32,10 +32,31 @@ La aplicación sigue una arquitectura de 3 capas con patrón MVC:
 
 ```
 arqCS-NCapas/
-├── frontend/          # Tier 1: Presentación
-├── backend/           # Tier 2: Lógica de Negocio
-├── database/          # Tier 3: Datos
-└── docker-compose.yml # Configuración de despliegue
+├── frontend/              # Tier 1: Presentación
+│   ├── src/
+│   │   ├── views/         # Vistas MVC (React Components)
+│   │   ├── services/      # Cliente API
+│   │   └── App.js
+│   └── package.json
+├── backend/               # Tier 2: Lógica de Negocio
+│   ├── app/
+│   │   ├── controllers/   # Controladores MVC
+│   │   ├── services/      # Lógica de Negocio
+│   │   ├── repositories/  # Acceso a Datos
+│   │   ├── models/        # Modelos de Dominio
+│   │   └── config/        # Configuración
+│   └── requirements.txt
+├── database/              # Tier 3: Datos
+│   ├── schema.sql
+│   └── init_db.py
+├── .github/
+│   └── workflows/         # Pipelines CI/CD
+├── docker-compose.yml     # Configuración Docker
+├── run.sh                 # Script de ejecución
+├── README.md             # Este archivo
+├── GuiaEstudiante.md     # Guía para estudiantes
+├── guiaDespliegue.md     # Guía de despliegue
+└── ARQUITECTURA.md       # Documentación técnica
 ```
 
 ## Entidades del Dominio
@@ -51,9 +72,18 @@ arqCS-NCapas/
 
 ## Requisitos
 
-- Python 3.8+
-- Node.js 14+
-- Docker y Docker Compose (opcional)
+### Para Desarrollo Local
+- **Python 3.8+** (recomendado 3.11)
+- **Node.js 14+** (recomendado 18+)
+- **npm** o **yarn**
+
+### Para Despliegue con Docker
+- **Docker** 20.10+
+- **Docker Compose** 1.29+ (o Docker Compose plugin)
+
+### Opcional
+- **Git** para clonar el repositorio
+- **PostgreSQL** o **MySQL** para producción (en lugar de SQLite)
 
 ## Instalación y Ejecución
 
@@ -93,8 +123,10 @@ chmod +x run.sh
 ### Opción 2: Con Docker Compose (Manual)
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
+
+**Nota**: En sistemas modernos, usa `docker compose` (sin guión). Si tienes la versión legacy, usa `docker-compose`.
 
 ### Opción 3: Manual (sin Docker)
 
@@ -152,7 +184,15 @@ El proyecto incluye pipelines de GitHub Actions para automatización:
 - **CI/CD Pipeline** (`ci-cd.yml`): Valida código, construye imágenes Docker y ejecuta tests
 - **Deploy Pipeline** (`deploy.yml`): Publica imágenes Docker al registro de GitHub Container Registry
 
-Ver [`.github/workflows/README.md`](.github/workflows/README.md) para más detalles.
+Ver [`.github/workflows/README.md`](.github/workflows/README.md) para más detalles sobre los pipelines de CI/CD.
+
+## Documentación
+
+El proyecto incluye documentación completa para estudiantes y desarrolladores:
+
+- **[Guía del Estudiante](GuiaEstudiante.md)**: Explicación detallada de cómo funciona el proyecto, arquitectura, flujo de datos y cómo agregar nuevos componentes
+- **[Guía de Despliegue](guiaDespliegue.md)**: Instrucciones completas para desplegar la aplicación en diferentes entornos (local, Docker, producción, cloud)
+- **[Documentación de Arquitectura](ARQUITECTURA.md)**: Detalles técnicos sobre la arquitectura cliente-servidor y 3 capas
 
 ## Características
 
@@ -161,4 +201,26 @@ Ver [`.github/workflows/README.md`](.github/workflows/README.md) para más detal
 - Patrón MVC implementado en cada capa
 - Cada tier puede desplegarse independientemente
 - Pipeline de CI/CD con GitHub Actions
+- Documentación completa para estudiantes y desarrolladores
+
+## Contribuir
+
+Si deseas contribuir al proyecto:
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+## Soporte
+
+Para preguntas o soporte:
+- Revisa la [Guía del Estudiante](GuiaEstudiante.md) para entender cómo funciona el proyecto
+- Consulta la [Guía de Despliegue](guiaDespliegue.md) para problemas de despliegue
+- Verifica los logs con `./run.sh logs` o `docker compose logs`
+
+## Licencia
+
+Este proyecto es educativo y está diseñado para fines académicos.
 

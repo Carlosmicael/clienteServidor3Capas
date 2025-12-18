@@ -117,6 +117,21 @@ install_all() {
     echo -e "${GREEN}=== Todas las dependencias instaladas ===${NC}"
 }
 
+# Función para verificar Docker Compose
+check_docker_compose() {
+    # Intentar docker compose (plugin moderno) primero
+    if docker compose version >/dev/null 2>&1; then
+        echo "docker compose"
+        return 0
+    # Fallback a docker-compose (legacy)
+    elif command_exists docker-compose; then
+        echo "docker-compose"
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Función para ejecutar con Docker
 run_docker() {
     echo -e "${BLUE}=== Ejecutando con Docker Compose ===${NC}"
@@ -127,13 +142,16 @@ run_docker() {
         exit 1
     fi
     
-    if ! command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD=$(check_docker_compose)
+    if [ $? -ne 0 ]; then
         echo -e "${RED}✗ Docker Compose no está instalado${NC}"
+        echo "Por favor instala Docker Compose: https://docs.docker.com/compose/install/"
         exit 1
     fi
     
+    echo -e "${GREEN}✓ Docker Compose encontrado (usando: $DOCKER_COMPOSE_CMD)${NC}"
     echo -e "${YELLOW}Construyendo y ejecutando contenedores...${NC}"
-    docker-compose up --build -d
+    $DOCKER_COMPOSE_CMD up --build -d
     
     echo -e "${GREEN}=== Aplicación ejecutándose en Docker ===${NC}"
     echo -e "${GREEN}Frontend: http://localhost:3001${NC}"
@@ -156,7 +174,7 @@ run_backend() {
     source venv/bin/activate 2>/dev/null || source venv/Scripts/activate 2>/dev/null
     
     echo -e "${GREEN}Iniciando servidor Flask en http://localhost:5001${NC}"
-    PORT=5001 python run.py
+    PORT=5001 python3 run.py 2>/dev/null || PORT=5001 python run.py
     
     cd ..
 }
@@ -191,7 +209,7 @@ init_database() {
     
     echo -e "${YELLOW}Ejecutando script de inicialización...${NC}"
     cd ../database
-    python init_db.py
+    python3 init_db.py 2>/dev/null || python init_db.py
     
     cd ..
     echo -e "${GREEN}✓ Base de datos inicializada${NC}"
@@ -233,12 +251,13 @@ clean() {
 stop_docker() {
     echo -e "${BLUE}=== Deteniendo contenedores Docker ===${NC}"
     
-    if ! command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD=$(check_docker_compose)
+    if [ $? -ne 0 ]; then
         echo -e "${RED}✗ Docker Compose no está instalado${NC}"
         exit 1
     fi
     
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     echo -e "${GREEN}✓ Contenedores detenidos${NC}"
 }
 
@@ -246,12 +265,13 @@ stop_docker() {
 show_logs() {
     echo -e "${BLUE}=== Logs de Docker ===${NC}"
     
-    if ! command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD=$(check_docker_compose)
+    if [ $? -ne 0 ]; then
         echo -e "${RED}✗ Docker Compose no está instalado${NC}"
         exit 1
     fi
     
-    docker-compose logs -f
+    $DOCKER_COMPOSE_CMD logs -f
 }
 
 # Función principal
