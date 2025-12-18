@@ -4,12 +4,15 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://905f3940a006.ngrok-free.app/api';
+console.log("hola")
+console.log(API_BASE_URL)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
   },
 });
 
@@ -38,6 +41,15 @@ export const contratosAPI = {
   create: (data) => api.post('/contratos', data),
   update: (id, data) => api.put(`/contratos/${id}`, data),
   delete: (id) => api.delete(`/contratos/${id}`),
+};
+
+// Empleados API
+export const empleadosAPI = {
+  getAll: () => api.get('/empleados'),
+  getById: (id) => api.get(`/empleados/${id}`),
+  create: (data) => api.post('/empleados', data),
+  update: (id, data) => api.put(`/empleados/${id}`, data),
+  delete: (id) => api.delete(`/empleados/${id}`),
 };
 
 export default api;

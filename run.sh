@@ -2,6 +2,7 @@
 
 # Script de ejecución para la aplicación de Servicios de Limpieza
 # Arquitectura Cliente-Servidor y 3 Capas
+# Versión optimizada para macOS con Python 3.12
 
 set -e  # Salir si hay errores
 
@@ -42,11 +43,13 @@ command_exists() {
 check_requirements() {
     local missing=0
     
-    if ! command_exists python3; then
-        echo -e "${RED}✗ Python 3 no está instalado${NC}"
+    # Verificamos específicamente python3.12
+    if ! command_exists python3.12; then
+        echo -e "${RED}✗ Python 3.12 no encontrado${NC}"
+        echo -e "${YELLOW}Por favor ejecuta: brew install python@3.12${NC}"
         missing=1
     else
-        echo -e "${GREEN}✓ Python 3 encontrado${NC}"
+        echo -e "${GREEN}✓ Python 3.12 encontrado${NC}"
     fi
     
     if ! command_exists node; then
@@ -71,19 +74,23 @@ install_backend() {
     echo -e "${BLUE}Instalando dependencias del backend...${NC}"
     cd backend
     
-    if [ ! -d "venv" ]; then
-        echo -e "${YELLOW}Creando entorno virtual...${NC}"
-        python3 -m venv venv
+    # Si existe un venv, lo borramos para asegurar que se cree con 3.12
+    if [ -d "venv" ]; then
+        echo -e "${YELLOW}Reemplazando entorno virtual anterior...${NC}"
+        rm -rf venv
     fi
     
-    source venv/bin/activate 2>/dev/null || source venv/Scripts/activate 2>/dev/null
+    echo -e "${YELLOW}Creando entorno virtual con Python 3.12...${NC}"
+    python3.12 -m venv venv
+    
+    source venv/bin/activate
     
     echo -e "${YELLOW}Instalando paquetes Python...${NC}"
     pip install --upgrade pip
     pip install -r requirements.txt
     
     cd ..
-    echo -e "${GREEN}✓ Dependencias del backend instaladas${NC}"
+    echo -e "${GREEN}✓ Dependencias del backend instaladas (Python 3.12)${NC}"
 }
 
 # Función para instalar dependencias del frontend
@@ -119,11 +126,9 @@ install_all() {
 
 # Función para verificar Docker Compose
 check_docker_compose() {
-    # Intentar docker compose (plugin moderno) primero
     if docker compose version >/dev/null 2>&1; then
         echo "docker compose"
         return 0
-    # Fallback a docker-compose (legacy)
     elif command_exists docker-compose; then
         echo "docker-compose"
         return 0
@@ -138,14 +143,12 @@ run_docker() {
     
     if ! command_exists docker; then
         echo -e "${RED}✗ Docker no está instalado${NC}"
-        echo "Por favor instala Docker: https://docs.docker.com/get-docker/"
         exit 1
     fi
     
     DOCKER_COMPOSE_CMD=$(check_docker_compose)
     if [ $? -ne 0 ]; then
         echo -e "${RED}✗ Docker Compose no está instalado${NC}"
-        echo "Por favor instala Docker Compose: https://docs.docker.com/compose/install/"
         exit 1
     fi
     
@@ -154,11 +157,6 @@ run_docker() {
     $DOCKER_COMPOSE_CMD up --build -d
     
     echo -e "${GREEN}=== Aplicación ejecutándose en Docker ===${NC}"
-    echo -e "${GREEN}Frontend: http://localhost:3001${NC}"
-    echo -e "${GREEN}Backend:  http://localhost:5001${NC}"
-    echo ""
-    echo "Para ver los logs: ./run.sh logs"
-    echo "Para detener: ./run.sh stop"
 }
 
 # Función para ejecutar backend
@@ -167,14 +165,13 @@ run_backend() {
     cd backend
     
     if [ ! -d "venv" ]; then
-        echo -e "${YELLOW}Entorno virtual no encontrado. Instalando dependencias...${NC}"
         install_backend
     fi
     
-    source venv/bin/activate 2>/dev/null || source venv/Scripts/activate 2>/dev/null
+    source venv/bin/activate
     
-    echo -e "${GREEN}Iniciando servidor Flask en http://localhost:5001${NC}"
-    PORT=5001 python3 run.py 2>/dev/null || PORT=5001 python run.py
+    echo -e "${GREEN}Iniciando servidor Flask con Python 3.12 en http://localhost:5001${NC}"
+    PORT=5001 python run.py
     
     cd ..
 }
@@ -185,7 +182,6 @@ run_frontend() {
     cd frontend
     
     if [ ! -d "node_modules" ]; then
-        echo -e "${YELLOW}node_modules no encontrado. Instalando dependencias...${NC}"
         install_frontend
     fi
     
@@ -201,15 +197,14 @@ init_database() {
     cd backend
     
     if [ ! -d "venv" ]; then
-        echo -e "${YELLOW}Entorno virtual no encontrado. Instalando dependencias...${NC}"
         install_backend
     fi
     
-    source venv/bin/activate 2>/dev/null || source venv/Scripts/activate 2>/dev/null
+    source venv/bin/activate
     
-    echo -e "${YELLOW}Ejecutando script de inicialización...${NC}"
+    echo -e "${YELLOW}Ejecutando script de inicialización con Python 3.12...${NC}"
     cd ../database
-    python3 init_db.py 2>/dev/null || python init_db.py
+    python3.12 init_db.py
     
     cd ..
     echo -e "${GREEN}✓ Base de datos inicializada${NC}"
@@ -219,30 +214,18 @@ init_database() {
 clean() {
     echo -e "${BLUE}=== Limpiando archivos generados ===${NC}"
     
-    read -p "¿Estás seguro? Esto eliminará node_modules, venv, y archivos .db (y/n): " -n 1 -r
+    read -p "¿Estás seguro? (y/n): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Operación cancelada"
         exit 0
     fi
     
-    echo -e "${YELLOW}Eliminando node_modules...${NC}"
     rm -rf frontend/node_modules
-    
-    echo -e "${YELLOW}Eliminando entorno virtual...${NC}"
     rm -rf backend/venv
-    
-    echo -e "${YELLOW}Eliminando archivos de base de datos...${NC}"
     rm -f backend/*.db
-    rm -f backend/*.sqlite
-    rm -f backend/*.sqlite3
-    
-    echo -e "${YELLOW}Eliminando build de React...${NC}"
     rm -rf frontend/build
-    
-    echo -e "${YELLOW}Eliminando cache de Python...${NC}"
     find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
-    find . -type f -name "*.pyc" -delete 2>/dev/null || true
     
     echo -e "${GREEN}✓ Limpieza completada${NC}"
 }
@@ -250,69 +233,35 @@ clean() {
 # Función para detener Docker
 stop_docker() {
     echo -e "${BLUE}=== Deteniendo contenedores Docker ===${NC}"
-    
     DOCKER_COMPOSE_CMD=$(check_docker_compose)
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}✗ Docker Compose no está instalado${NC}"
-        exit 1
-    fi
-    
     $DOCKER_COMPOSE_CMD down
     echo -e "${GREEN}✓ Contenedores detenidos${NC}"
 }
 
 # Función para ver logs de Docker
 show_logs() {
-    echo -e "${BLUE}=== Logs de Docker ===${NC}"
-    
     DOCKER_COMPOSE_CMD=$(check_docker_compose)
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}✗ Docker Compose no está instalado${NC}"
-        exit 1
-    fi
-    
     $DOCKER_COMPOSE_CMD logs -f
 }
 
 # Función principal
 main() {
     case "${1:-help}" in
-        docker)
-            run_docker
-            ;;
-        backend)
-            run_backend
-            ;;
-        frontend)
-            run_frontend
-            ;;
-        install)
-            install_all
-            ;;
-        init-db)
-            init_database
-            ;;
-        clean)
-            clean
-            ;;
-        stop)
-            stop_docker
-            ;;
-        logs)
-            show_logs
-            ;;
-        help|--help|-h)
-            show_help
-            ;;
+        docker) run_docker ;;
+        backend) run_backend ;;
+        frontend) run_frontend ;;
+        install) install_all ;;
+        init-db) init_database ;;
+        clean) clean ;;
+        stop) stop_docker ;;
+        logs) show_logs ;;
+        help|--help|-h) show_help ;;
         *)
             echo -e "${RED}Opción desconocida: $1${NC}"
-            echo ""
             show_help
             exit 1
             ;;
     esac
 }
 
-# Ejecutar función principal
 main "$@"
-

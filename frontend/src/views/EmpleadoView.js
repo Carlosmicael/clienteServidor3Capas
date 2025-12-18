@@ -1,36 +1,32 @@
-/**
- * Vista de Empresas - Tier 1: Presentación (MVC View)
- * Componente React que representa la vista de gestión de empresas
- */
 import React, { useState, useEffect } from 'react';
-import { empresasAPI } from '../services/api';
+import { empleadosAPI } from '../services/api';
 
-const EmpresaView = () => {
-  const [empresas, setEmpresas] = useState([]);
+const EmpleadoView = () => {
+  const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     nombre: '',
-    direccion: '',
-    telefono: '',
+    apellido: '',
     email: '',
+    telefono: '',
+    cargo: '',
   });
-
+  const [filter, setFilter] = useState('');
   useEffect(() => {
-    loadEmpresas();
+    loadEmpleados();
   }, []);
 
-  const loadEmpresas = async () => {
+  const loadEmpleados = async () => {
     try {
       setLoading(true);
-      const response = await empresasAPI.getAll();
-      console.log("BACKEND RESPUESTA:", response.data);
-      setEmpresas(response.data);
+      const response = await empleadosAPI.getAll();
+      setEmpleados(response.data);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al cargar empresas');
+      setError(err.response?.data?.error || 'Error al cargar empleados');
     } finally {
       setLoading(false);
     }
@@ -50,43 +46,44 @@ const EmpresaView = () => {
       setSuccess(null);
       
       if (editingId) {
-        await empresasAPI.update(editingId, formData);
-        setSuccess('Empresa actualizada correctamente');
+        await empleadosAPI.update(editingId, formData);
+        setSuccess('Empleado actualizado correctamente');
       } else {
-        await empresasAPI.create(formData);
-        setSuccess('Empresa creada correctamente');
+        await empleadosAPI.create(formData);
+        setSuccess('Empleado creado correctamente');
       }
       
       resetForm();
-      loadEmpresas();
+      loadEmpleados();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al guardar empresa');
+      setError(err.response?.data?.error || 'Error al guardar empleado');
     }
   };
 
-  const handleEdit = (empresa) => {
-    setEditingId(empresa.id);
+  const handleEdit = (empleado) => {
+    setEditingId(empleado.id);
     setFormData({
-      nombre: empresa.nombre,
-      direccion: empresa.direccion,
-      telefono: empresa.telefono,
-      email: empresa.email,
+      nombre: empleado.nombre,
+      apellido: empleado.apellido,
+      email: empleado.email,
+      telefono: empleado.telefono,
+      cargo: empleado.cargo,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar esta empresa?')) {
+    if (!window.confirm('¿Está seguro de eliminar este empleado?')) {
       return;
     }
     
     try {
       setError(null);
-      await empresasAPI.delete(id);
-      setSuccess('Empresa eliminada correctamente');
-      loadEmpresas();
+      await empleadosAPI.delete(id);
+      setSuccess('Empleado eliminado correctamente');
+      loadEmpleados();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al eliminar empresa');
+      setError(err.response?.data?.error || 'Error al eliminar empleado');
     }
   };
 
@@ -94,20 +91,21 @@ const EmpresaView = () => {
     setEditingId(null);
     setFormData({
       nombre: '',
-      direccion: '',
-      telefono: '',
+      apellido: '',
       email: '',
+      telefono: '',
+      cargo: '',
     });
   };
 
   if (loading) {
-    return <div className="loading">Cargando empresas...</div>;
+    return <div className="loading">Cargando empleados...</div>;
   }
 
   return (
     <div className="container">
       <div className="card">
-        <h2>{editingId ? 'Editar Empresa' : 'Nueva Empresa'}</h2>
+        <h2>{editingId ? 'Editar Empleado' : 'Nuevo Empleado'}</h2>
         
         {error && <div className="error">{error}</div>}
         {success && <div className="success">{success}</div>}
@@ -125,11 +123,22 @@ const EmpresaView = () => {
           </div>
           
           <div className="form-group">
-            <label>Dirección:</label>
+            <label>Apellido:</label>
             <input
               type="text"
-              name="direccion"
-              value={formData.direccion}
+              name="apellido"
+              value={formData.apellido}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleInputChange}
               required
             />
@@ -147,11 +156,11 @@ const EmpresaView = () => {
           </div>
           
           <div className="form-group">
-            <label>Email:</label>
+            <label>Cargo:</label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="cargo"
+              value={formData.cargo}
               onChange={handleInputChange}
               required
             />
@@ -171,44 +180,60 @@ const EmpresaView = () => {
       </div>
 
       <div className="card">
-        <h2>Lista de Empresas</h2>
+        <h2>Lista de Empleados</h2>
+        <input
+            type="text"
+            placeholder="Filtrar por nombre o apellido..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            style={{ marginBottom: '10px', width: '100%', padding: '5px' }}
+        />
+
         <table>
           <thead>
             <tr>
               <th>ID</th>
               <th>Nombre</th>
-              <th>Dirección</th>
-              <th>Teléfono</th>
+              <th>Apellido</th>
               <th>Email</th>
+              <th>Teléfono</th>
+              <th>Cargo</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {empresas.length === 0 ? (
+            {empleados.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center' }}>
-                  No hay empresas registradas
+                <td colSpan="7" style={{ textAlign: 'center' }}>
+                  No hay empleados registrados
                 </td>
               </tr>
             ) : (
-              empresas.map((empresa) => (
-                <tr key={empresa.id}>
-                  <td>{empresa.id}</td>
-                  <td>{empresa.nombre}</td>
-                  <td>{empresa.direccion}</td>
-                  <td>{empresa.telefono}</td>
-                  <td>{empresa.email}</td>
+              empleados
+                .filter(emp =>
+                    emp.nombre.toLowerCase().includes(filter.toLowerCase()) ||
+                    emp.apellido.toLowerCase().includes(filter.toLowerCase())
+                )
+                .map((empleado) => (
+
+                <tr key={empleado.id}>
+                  <td>{empleado.id}</td>
+                  <td>{empleado.nombre}</td>
+                  <td>{empleado.apellido}</td>
+                  <td>{empleado.email}</td>
+                  <td>{empleado.telefono}</td>
+                  <td>{empleado.cargo}</td>
                   <td>
                     <button
                       className="btn btn-edit"
-                      onClick={() => handleEdit(empresa)}
+                      onClick={() => handleEdit(empleado)}
                       style={{ marginRight: '5px' }}
                     >
                       Editar
                     </button>
                     <button
                       className="btn btn-danger"
-                      onClick={() => handleDelete(empresa.id)}
+                      onClick={() => handleDelete(empleado.id)}
                     >
                       Eliminar
                     </button>
@@ -223,6 +248,4 @@ const EmpresaView = () => {
   );
 };
 
-export default EmpresaView;
-
-
+export default EmpleadoView;
