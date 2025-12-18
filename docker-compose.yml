@@ -3,14 +3,16 @@ version: '3.8'
 services:
   # Tier 3: Base de Datos
   database:
-    image: sqlite:latest
+    image: postgres:13
     container_name: limpieza_db
+    environment:
+      POSTGRES_DB: limpieza_empresas_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     volumes:
-      - ./database:/data
+      - pg_data:/var/lib/postgresql/data
     networks:
       - app-network
-    # Nota: SQLite no requiere un contenedor separado, pero se incluye para demostrar la separación de tiers
-    # En producción, usar PostgreSQL o MySQL
 
   # Tier 2: Backend (Lógica de Negocio)
   backend:
@@ -23,7 +25,7 @@ services:
     environment:
       - PORT=5001
       - FLASK_ENV=development
-      - SQLALCHEMY_DATABASE_URI=sqlite:///limpieza_empresas.db
+      - SQLALCHEMY_DATABASE_URI=postgresql://user:password@database:5432/limpieza_empresas_db
     volumes:
       - ./backend:/app
       - ./database:/app/database
@@ -56,5 +58,8 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  pg_data:
 
 
