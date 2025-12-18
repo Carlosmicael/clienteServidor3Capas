@@ -192,6 +192,7 @@ El proyecto incluye documentación completa para estudiantes y desarrolladores:
 
 - **[Guía del Estudiante](GuiaEstudiante.md)**: Explicación detallada de cómo funciona el proyecto, arquitectura, flujo de datos y cómo agregar nuevos componentes
 - **[Guía de Despliegue](guiaDespliegue.md)**: Instrucciones completas para desplegar la aplicación en diferentes entornos (local, Docker, producción, cloud)
+- **[Guía de Despliegue Local en 3 Nodos](guiaDespliegueLocal.md)**: Cómo desplegar cada capa en un nodo físico diferente, demostrando la separación física de tiers
 - **[Guía de Uso de Ramas en GitHub](guiaUsoRamasGithub.md)**: Cómo trabajar con ramas de Git/GitHub para agregar nuevas funcionalidades de manera colaborativa
 - **[Documentación de Arquitectura](ARQUITECTURA.md)**: Detalles técnicos sobre la arquitectura cliente-servidor y 3 capas
 
