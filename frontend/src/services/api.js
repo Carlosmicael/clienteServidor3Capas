@@ -8,6 +8,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://905f3940a006.ngro
 console.log("hola")
 console.log(API_BASE_URL)
 
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -16,6 +17,18 @@ const api = axios.create({
   },
 });
 
+/**
+ si se quiere levantar el fronted desde la misma mauqina usar este codigo de localhost
+ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+
+  const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+ */
 // Empresas API
 export const empresasAPI = {
   getAll: () => api.get('/empresas'),
@@ -50,6 +63,11 @@ export const empleadosAPI = {
   create: (data) => api.post('/empleados', data),
   update: (id, data) => api.put(`/empleados/${id}`, data),
   delete: (id) => api.delete(`/empleados/${id}`),
+export const inspeccionesAPI = {
+  getAll: () => api.get('/inspecciones'),
+  create: (data) => api.post('/inspecciones', data),
+};
+
 export const inspeccionesAPI = {
   getAll: () => api.get('/inspecciones'),
   create: (data) => api.post('/inspecciones', data),
