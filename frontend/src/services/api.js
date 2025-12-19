@@ -50,6 +50,9 @@ export const empleadosAPI = {
   create: (data) => api.post('/empleados', data),
   update: (id, data) => api.put(`/empleados/${id}`, data),
   delete: (id) => api.delete(`/empleados/${id}`),
+export const inspeccionesAPI = {
+  getAll: () => api.get('/inspecciones'),
+  create: (data) => api.post('/inspecciones', data),
 };
 
 export default api;
