@@ -27,13 +27,14 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Configurar CORS - Permitir orígenes desde variables de entorno
-    cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:3001').split(',')
-    CORS(app, resources={
-        r"/api/*": {"origins": cors_origins}
-    })
-    
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     # Inicializar base de datos
     init_db(app)
+
+    from app.controllers.empleado_controller import empleado_bp
+    app.register_blueprint(empleado_bp)
+    from app.controllers.inspeccion_controller import inspeccion_bp
+    app.register_blueprint(inspeccion_bp)
     
     # Registrar blueprints (rutas)
     app.register_blueprint(empresa_bp)
