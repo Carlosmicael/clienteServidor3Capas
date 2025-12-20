@@ -230,5 +230,4 @@ Para preguntas o soporte:
 
 ## Licencia
 
-@xavicrip
 LinkVideo: https://youtu.be/s5KzV06fiqM?si=sErs3fK03t1-SYts
